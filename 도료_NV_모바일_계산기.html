@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f9fc">
+  <title>도료 NV 측정</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f9fc;
+      --ink: #14233a;
+      --muted: #718097;
+      --line: #e5ebf3;
+      --navy: #183452;
+      --blue: #1c65b2;
+      --blue-soft: #eaf2fc;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-width: 280px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Hyundai Harmony L", "현대 하모니 L", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      width: min(100% - 32px, 460px);
+      margin: 0 auto;
+      padding: max(27px, env(safe-area-inset-top)) 0 max(40px, env(safe-area-inset-bottom));
+    }
+    .eyebrow {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .095em;
+      margin-bottom: 7px;
+    }
+    h1 {
+      font-size: 25px;
+      line-height: 1.25;
+      letter-spacing: -.05em;
+      font-weight: 750;
+      margin: 0;
+    }
+    .subtitle {
+      margin: 9px 0 23px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      letter-spacing: -.025em;
+    }
+    .result {
+      border-radius: 18px;
+      padding: 23px 25px 21px;
+      color: white;
+      background: var(--navy);
+      box-shadow: 0 8px 24px rgba(23, 52, 83, .10);
+      margin-bottom: 25px;
+    }
+    .result-label {
+      color: #c9d7e6;
+      font-size: 14px;
+      font-weight: 550;
+      letter-spacing: -.02em;
+    }
+    .result-value {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      margin-top: 11px;
+      font-weight: 770;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.055em;
+    }
+    #avgValue {
+      font-size: clamp(45px, 13vw, 57px);
+      line-height: 1.08;
+    }
+    .result-unit { font-size: 25px; font-weight: 550; color: #cedbea; letter-spacing: 0; }
+    #avgNote { color: #aebed1; font-size: 12px; margin-top: 12px; min-height: 17px; }
+    .section-title {
+      font-size: 15px;
+      font-weight: 750;
+      margin: 0 0 11px 2px;
+      letter-spacing: -.035em;
+    }
+    .measurements { display: grid; gap: 12px; }
+    .sample {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 17px 16px 16px;
+      box-shadow: 0 2px 7px rgba(24, 52, 82, .025);
+    }
+    .sample-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .sample-name { font-size: 15px; font-weight: 750; letter-spacing: -.025em; }
+    .sample-nv { color: var(--blue); font-size: 17px; font-weight: 790; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .sample-nv.empty { color: #a4afbe; }
+    .sample-nv.invalid { color: #bd4c4c; font-size: 13px; }
+    .fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+    .field { display: block; min-width: 0; }
+    .field-label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: -.045em;
+      color: #697991;
+      white-space: nowrap;
+    }
+    input {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      height: 47px;
+      padding: 0 7px;
+      appearance: none;
+      border: 1px solid #dce5ef;
+      border-radius: 9px;
+      outline: none;
+      background: #fcfdff;
+      color: #172b43;
+      text-align: center;
+      font-family: inherit;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.04em;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input::placeholder { color: #c0c9d4; }
+    input:focus { border-color: #5594d4; box-shadow: 0 0 0 3px rgba(72, 139, 208, .12); background: white; }
+    .formula {
+      margin: 20px 4px 0;
+      text-align: center;
+      color: #91a0b1;
+      font-size: 11px;
+      line-height: 1.8;
+      letter-spacing: -.025em;
+    }
+    @media (max-width: 345px) {
+      .page { width: calc(100% - 24px); }
+      .sample { padding: 16px 11px; }
+      .fields { gap: 6px; }
+      .field-label { font-size: 11px; }
+      input { padding: 0 3px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div class="eyebrow">NV MEASUREMENT</div>
+      <h1>도료 NV 측정</h1>
+      <p class="subtitle">측정 무게를 입력하면 NV 값이 자동 계산됩니다.</p>
+    </header>
+
+    <section class="result" aria-label="평균 NV 결과" aria-live="polite" aria-atomic="true">
+      <div class="result-label">평균 NV</div>
+      <div class="result-value"><span id="avgValue">--.--</span><span class="result-unit">%</span></div>
+      <div id="avgNote">측정값을 입력해 주세요</div>
+    </section>
+
+    <section aria-labelledby="measurementsTitle">
+      <h2 id="measurementsTitle" class="section-title">측정값 입력</h2>
+      <div class="measurements">
+        <article class="sample" data-sample="1">
+          <div class="sample-head"><span class="sample-name">1차 측정</span><output class="sample-nv empty" id="nv1">--.-- %</output></div>
+          <div class="fields">
+            <label class="field"><span class="field-label">호일 무게 (g)</span><input data-field="foil" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="1차 호일 무게"></label>
+            <label class="field"><span class="field-label">시료 무게 (g)</span><input data-field="sample" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="1차 시료 무게"></label>
+            <label class="field"><span class="field-label">건조 후 (g)</span><input data-field="dry" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="1차 건조 후 무게"></label>
+          </div>
+        </article>
+        <article class="sample" data-sample="2">
+          <div class="sample-head"><span class="sample-name">2차 측정</span><output class="sample-nv empty" id="nv2">--.-- %</output></div>
+          <div class="fields">
+            <label class="field"><span class="field-label">호일 무게 (g)</span><input data-field="foil" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="2차 호일 무게"></label>
+            <label class="field"><span class="field-label">시료 무게 (g)</span><input data-field="sample" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="2차 시료 무게"></label>
+            <label class="field"><span class="field-label">건조 후 (g)</span><input data-field="dry" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="2차 건조 후 무게"></label>
+          </div>
+        </article>
+        <article class="sample" data-sample="3">
+          <div class="sample-head"><span class="sample-name">3차 측정</span><output class="sample-nv empty" id="nv3">--.-- %</output></div>
+          <div class="fields">
+            <label class="field"><span class="field-label">호일 무게 (g)</span><input data-field="foil" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="3차 호일 무게"></label>
+            <label class="field"><span class="field-label">시료 무게 (g)</span><input data-field="sample" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="3차 시료 무게"></label>
+            <label class="field"><span class="field-label">건조 후 (g)</span><input data-field="dry" type="text" inputmode="decimal" autocomplete="off" placeholder="0.0000" aria-label="3차 건조 후 무게"></label>
+          </div>
+        </article>
+      </div>
+    </section>
+    <p class="formula">NV(%) = (건조 후 무게 − 호일 무게) ÷ 시료 무게 × 100</p>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const cards = Array.from(document.querySelectorAll('[data-sample]'));
+      const avgValue = document.getElementById('avgValue');
+      const avgNote = document.getElementById('avgNote');
+      const fmt = value => value.toFixed(2);
+      const readValue = input => {
+        const value = input.value.trim().replace(',', '.');
+        if (value === '') return null;
+        if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)) return NaN;
+        return Number(value);
+      };
+      const calculate = () => {
+        const values = [];
+        cards.forEach(card => {
+          const foil = readValue(card.querySelector('[data-field="foil"]'));
+          const sample = readValue(card.querySelector('[data-field="sample"]'));
+          const dry = readValue(card.querySelector('[data-field="dry"]'));
+          const output = card.querySelector('output');
+          output.classList.remove('empty', 'invalid');
+          if ([foil, sample, dry].some(value => value === null)) {
+            output.textContent = '--.-- %';
+            output.classList.add('empty');
+            return;
+          }
+          const remainder = dry - foil;
+          if (![foil, sample, dry].every(Number.isFinite) || sample <= 0 || remainder < -1e-10 || remainder > sample + 1e-10) {
+            output.textContent = '입력값 확인';
+            output.classList.add('invalid');
+            return;
+          }
+          const nv = Math.max(0, Math.min(100, remainder / sample * 100));
+          values.push(nv);
+          output.textContent = fmt(nv) + ' %';
+        });
+        if (values.length) {
+          avgValue.textContent = fmt(values.reduce((a, b) => a + b, 0) / values.length);
+          avgNote.textContent = `${values.length} / 3회 측정값 기준`;
+        } else {
+          avgValue.textContent = '--.--';
+          avgNote.textContent = '측정값을 입력해 주세요';
+        }
+      };
+      document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
+      calculate();
+    })();
+  </script>
+</body>
+</html>
